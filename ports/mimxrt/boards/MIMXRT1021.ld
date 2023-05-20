@@ -23,17 +23,17 @@ vfs_size            = ((flash_end) - (vfs_start));
 itcm_start          = 0x00000000;
 itcm_size           = 0x00010000;
 dtcm_start          = 0x20000000;
-dtcm_size           = 0x00018000;
+dtcm_size           = 0x00008000;  /* 64K --> 32K */
 ocrm_start          = 0x20200000;
-ocrm_size           = 0x00018000;
+ocrm_size           = 0x00020000;
 
 #if MICROPY_HW_SDRAM_AVAIL
 sdram_start         = 0x80000000;
 sdram_size          = MICROPY_HW_SDRAM_SIZE;
 #endif
 
-/* 24kiB stack. */
-__stack_size__ = 0x6000;
+/* 24kiB stack. */	/* Change to 20K */
+__stack_size__ = 0x5000;
 _estack = __StackTop;
 _sstack = __StackLimit;
 

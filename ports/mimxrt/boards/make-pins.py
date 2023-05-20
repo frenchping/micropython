@@ -196,8 +196,8 @@ class Pins(object):
                 if len(row) == 0 or row[0].startswith("#"):
                     # Skip empty lines, and lines starting with "#"
                     continue
-                if len(row) != 2:
-                    raise ValueError("Expecting two entries in a row")
+                # if len(row) != 2:
+                #     raise ValueError("Expecting two entries in a row")
 
                 pin = self.find_pin_by_name(row[1])
                 if pin and row[0]:  # Only add board pins that have a name

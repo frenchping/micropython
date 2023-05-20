@@ -202,7 +202,7 @@ mimxrt_sdcard_obj_t mimxrt_sdcard_objs[] =
         .block_len = SDCARD_DEFAULT_BLOCK_SIZE,
         .block_count = 0UL,
         .pins = &mimxrt_sdcard_2_obj_pins,
-    };
+    }
     #endif
 };
 
