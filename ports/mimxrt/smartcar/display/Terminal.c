@@ -100,7 +100,7 @@ STATIC mp_obj_t tty_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_
     const mp_obj_type_t *usr_drv_type = obj_in->base.type;
 
     if (!mp_obj_is_subclass_fast(usr_drv_type, MP_OBJ_FROM_PTR(&display_lcd_type)))
-        mp_raise_TypeError("Provided object has to be LCD or derived from LCD.");
+        mp_raise_TypeError(MP_ERROR_TEXT("Provided object has to be LCD or derived from LCD."));
 
     display_lcd_obj_t *lcd_obj = (display_lcd_obj_t*)MP_OBJ_TO_PTR(args[0]);
 

@@ -230,7 +230,7 @@ STATIC void lcd_drv_obj_print(const mp_print_t *print, mp_obj_t self_in, mp_prin
 ///         This is provide here to remind user to override it
 STATIC mp_obj_t lcd_drv_init(mp_obj_t self_in)
 {
-    mp_raise_NotImplementedError("Has to define init() for user-defined screen type.");
+    mp_raise_NotImplementedError(MP_ERROR_TEXT("Has to define init() for user-defined screen type."));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(lcd_drv_init_obj, lcd_drv_init);
 
@@ -247,7 +247,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(lcd_drv_init_obj, lcd_drv_init);
 ///         This is provide here to remind user to override it
 STATIC mp_obj_t lcd_drv_mode(mp_obj_t self_in, mp_obj_t mode_in)
 {
-    mp_raise_NotImplementedError("Has to define set_mode(mode) for user-defined screen type.");
+    mp_raise_NotImplementedError(MP_ERROR_TEXT("Has to define set_mode(mode) for user-defined screen type."));
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(lcd_drv_mode_obj, lcd_drv_mode);
 

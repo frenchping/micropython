@@ -23,7 +23,7 @@ vfs_size            = ((flash_end) - (vfs_start));
 itcm_start          = 0x00000000;
 itcm_size           = 0x00010000;
 dtcm_start          = 0x20000000;
-dtcm_size           = 0x00008000;  /* 64K --> 32K */
+dtcm_size           = 0x00010000;
 ocrm_start          = 0x20200000;
 ocrm_size           = 0x00020000;
 
