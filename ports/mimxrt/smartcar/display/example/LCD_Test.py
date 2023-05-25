@@ -8,8 +8,8 @@ import random
 time.sleep_ms(100)
 
 # 定义DC和Rst引脚
-dc = Pin('J2_28', Pin.OUT, pull=Pin.PULL_UP_47K, value=1)
-rst = Pin('J2_26', Pin.OUT, pull=Pin.PULL_UP_47K, value=1)
+dc = Pin('B9', Pin.OUT, pull=Pin.PULL_UP_47K, value=1)
+rst = Pin('B8', Pin.OUT, pull=Pin.PULL_UP_47K, value=1)
 
 # 建立LCD_Drv的实体，使用SPI 0（对应芯片的LPSPI1，引脚：PCS0=）
 drv = LCD_Drv(SPI_INDEX=0, BAUDRATE=15000000, DC_PIN=dc, RST_PIN=rst, LCD_TYPE=LCD_Drv.LCD200_TYPE)
@@ -32,11 +32,13 @@ xbuf = framebuf.FrameBuffer(bytearray(WIDTH * HEIGHT * 2), WIDTH, HEIGHT, frameb
 xbuf.fill(0xFFE0)   #Yellow
 lcd.str24(0,0,"Hello World", 0xF800, xbuf)
 lcd.blit(10, 0, WIDTH, HEIGHT, xbuf)
+
 lcd.str24(0,30,"Hello World", 0xF80, xbuf)
 lcd.str24(0,60,"Hello World", 0xF8, xbuf)
 lcd.str24(0,90,"Hello World", 0xF800, xbuf)
+lcd.blit(30, 210, WIDTH, HEIGHT, xbuf)  # Show above 3 lines
 
-#################
+### Draw lines with random colors
 while True:
     lcd.clear(0)
     for y in range(0,240,2):
@@ -71,7 +73,8 @@ while True:
 ##########################
 # 以下测试使用framebuf显示Hello World
 import struct
-plt = framebuf.FrameBuffer(struct.pack('HH', 0x7FF, 0xF800), 2, 1, framebuf.RGB565)
+bf = bytearray(struct.pack('HH', 0x7FF, 0xF800))
+plt = framebuf.FrameBuffer(bf, 2, 1, framebuf.RGB565)
 
 y = 20
 x = 10

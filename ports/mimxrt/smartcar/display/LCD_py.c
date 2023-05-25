@@ -292,7 +292,7 @@ MP_DEFINE_CONST_FUN_OBJ_3(lcd_color_obj, lcd_color);
 STATIC mp_obj_t lcd_line(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args)
 {
     display_lcd_obj_t *self = MP_OBJ_TO_PTR(pos_args[0]);
-    
+
     enum { ARG_x0, ARG_y0, ARG_x1, ARG_y1, ARG_color, ARG_thick};
     static const mp_arg_t allowed_args[] = {
         { MP_QSTR_x0, MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = -1} },
