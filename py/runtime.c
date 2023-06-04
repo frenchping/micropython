@@ -277,7 +277,7 @@ mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg) {
             case MP_UNARY_OP_HASH:
                 return arg;
             case MP_UNARY_OP_POSITIVE:
-            case MP_UNARY_OP_INT:
+            case MP_UNARY_OP_INT_MAYBE:
                 return arg;
             case MP_UNARY_OP_NEGATIVE:
                 // check for overflow
@@ -324,32 +324,23 @@ mp_obj_t mp_unary_op(mp_unary_op_t op, mp_obj_t arg) {
             // if arg==mp_const_none.
             return mp_const_true;
         }
-        #if MICROPY_PY_BUILTINS_FLOAT
-        if (op == MP_UNARY_OP_FLOAT_MAYBE
+        if (op == MP_UNARY_OP_INT_MAYBE
+            #if MICROPY_PY_BUILTINS_FLOAT
+            || op == MP_UNARY_OP_FLOAT_MAYBE
             #if MICROPY_PY_BUILTINS_COMPLEX
             || op == MP_UNARY_OP_COMPLEX_MAYBE
             #endif
+            #endif
             ) {
+            // These operators may return MP_OBJ_NULL if they are not supported by the type.
             return MP_OBJ_NULL;
         }
-        #endif
-        // With MP_UNARY_OP_INT, mp_unary_op() becomes a fallback for mp_obj_get_int().
-        // In this case provide a more focused error message to not confuse, e.g. chr(1.0)
         #if MICROPY_ERROR_REPORTING <= MICROPY_ERROR_REPORTING_TERSE
-        if (op == MP_UNARY_OP_INT) {
-            mp_raise_TypeError(MP_ERROR_TEXT("can't convert to int"));
-        } else {
-            mp_raise_TypeError(MP_ERROR_TEXT("unsupported type for operator"));
-        }
+        mp_raise_TypeError(MP_ERROR_TEXT("unsupported type for operator"));
         #else
-        if (op == MP_UNARY_OP_INT) {
-            mp_raise_msg_varg(&mp_type_TypeError,
-                MP_ERROR_TEXT("can't convert %s to int"), mp_obj_get_type_str(arg));
-        } else {
-            mp_raise_msg_varg(&mp_type_TypeError,
-                MP_ERROR_TEXT("unsupported type for %q: '%s'"),
-                mp_unary_op_method_name[op], mp_obj_get_type_str(arg));
-        }
+        mp_raise_msg_varg(&mp_type_TypeError,
+            MP_ERROR_TEXT("unsupported type for %q: '%s'"),
+            mp_unary_op_method_name[op], mp_obj_get_type_str(arg));
         #endif
     }
 }
@@ -623,6 +614,15 @@ generic_binary_op:
         if (result != MP_OBJ_NULL) {
             return result;
         }
+    }
+
+    // If this was an inplace method, fallback to the corresponding normal method.
+    // https://docs.python.org/3/reference/datamodel.html#object.__iadd__ :
+    // "If a specific method is not defined, the augmented assignment falls back
+    // to the normal methods."
+    if (op >= MP_BINARY_OP_INPLACE_OR && op <= MP_BINARY_OP_INPLACE_POWER) {
+        op += MP_BINARY_OP_OR - MP_BINARY_OP_INPLACE_OR;
+        goto generic_binary_op;
     }
 
     #if MICROPY_PY_REVERSE_SPECIAL_METHODS
@@ -1531,7 +1531,8 @@ mp_obj_t mp_import_from(mp_obj_t module, qstr name) {
     #if MICROPY_ENABLE_EXTERNAL_IMPORT
 
     // See if it's a package, then can try FS import
-    if (!mp_obj_is_package(module)) {
+    mp_load_method_maybe(module, MP_QSTR___path__, dest);
+    if (dest[0] == MP_OBJ_NULL) {
         goto import_error;
     }
 
@@ -1689,6 +1690,16 @@ NORETURN void mp_raise_StopIteration(mp_obj_t arg) {
     } else {
         mp_raise_type_arg(&mp_type_StopIteration, arg);
     }
+}
+
+NORETURN void mp_raise_TypeError_int_conversion(mp_const_obj_t arg) {
+    #if MICROPY_ERROR_REPORTING <= MICROPY_ERROR_REPORTING_TERSE
+    (void)arg;
+    mp_raise_TypeError(MP_ERROR_TEXT("can't convert to int"));
+    #else
+    mp_raise_msg_varg(&mp_type_TypeError,
+        MP_ERROR_TEXT("can't convert %s to int"), mp_obj_get_type_str(arg));
+    #endif
 }
 
 NORETURN void mp_raise_OSError(int errno_) {
