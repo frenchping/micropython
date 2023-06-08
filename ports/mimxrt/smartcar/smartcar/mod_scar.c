@@ -11,6 +11,7 @@
 
 extern const mp_obj_module_t camera_type;
 extern const mp_obj_module_t adc_group_type;
+extern const mp_obj_module_t smartcar_encoder_type;
 
 STATIC const mp_rom_map_elem_t smartcar_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__),    MP_ROM_QSTR(MP_QSTR_smartcar) },
@@ -18,6 +19,7 @@ STATIC const mp_rom_map_elem_t smartcar_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_MT9V032),     MP_ROM_PTR(&camera_type) },
 // #endif // ENABLE_CAMERA_MT9V032
     { MP_ROM_QSTR(MP_QSTR_ADC_Group),   MP_ROM_PTR(&adc_group_type) },
+    { MP_ROM_QSTR(MP_QSTR_encoder),     MP_ROM_PTR(&smartcar_encoder_type) },
 };
 STATIC MP_DEFINE_CONST_DICT(smartcar_module_globals, smartcar_module_globals_table);
 
