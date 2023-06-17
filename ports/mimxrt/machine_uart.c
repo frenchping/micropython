@@ -479,3 +479,27 @@ MP_DEFINE_CONST_OBJ_TYPE(
     protocol, &uart_stream_p,
     locals_dict, &machine_uart_locals_dict
     );
+
+
+/*************************************************************
+ * Ping Liang
+ *
+ * Check if the character is an interrupt char. 
+ * If so and there is a dup-terminal, schedule a break.
+ */
+#include "shared/runtime/interrupt_char.h"
+void uart_dupterm_chk_brk(LPUART_Type *base, uint8_t rx_chr)
+{
+    if (rx_chr != mp_interrupt_char)
+        return;
+
+    for (size_t idx = 0; idx < MICROPY_PY_OS_DUPTERM; ++idx) {
+        if (MP_STATE_VM(dupterm_objs[idx])) {
+            machine_uart_obj_t *self = MP_STATE_VM(dupterm_objs[idx]);
+            if (self->lpuart == base) {
+                mp_sched_keyboard_interrupt();
+                break;
+            }
+        }
+    }
+}
