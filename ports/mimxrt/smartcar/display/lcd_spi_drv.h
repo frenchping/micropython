@@ -150,4 +150,7 @@ void spi_lcd_fill_color(lcd_display_t *lcd, uint16_t color, uint32_t length);
 void spi_lcd_fill_area(lcd_display_t *lcd, uint16_t *buf, uint32_t length);
 void spi_lcd_draw_line (lcd_display_t *lcd, Rect_t *rect, uint16_t color, uint16_t thick);
 
+void spi_lcd_dma_init(lcd_display_t *lcd, uint32_t dma_chn);
+void spi_lcd_dma_fill(lcd_display_t *lcd, uint16_t *buf, uint32_t length, uint32_t dma_chn);
+bool spi_lcd_dma_done();
 #endif  // LCD_SPI_DRV_INCLUDE_H

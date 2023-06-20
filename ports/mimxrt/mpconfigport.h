@@ -58,6 +58,7 @@ uint32_t trng_random_u32(void);
 #define MICROPY_ENABLE_GC                   (1)
 #define MICROPY_ENABLE_EMERGENCY_EXCEPTION_BUF  (1)
 #define MICROPY_LONGINT_IMPL                (MICROPY_LONGINT_IMPL_MPZ)
+#define MICROPY_SCHEDULER_STATIC_NODES (1)
 #define MICROPY_SCHEDULER_DEPTH             (8)
 #define MICROPY_VFS                         (1)
 #define MICROPY_MODULE_FROZEN_MPY           (1)

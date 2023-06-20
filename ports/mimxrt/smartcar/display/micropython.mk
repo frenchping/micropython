@@ -4,6 +4,7 @@ SRC_USERMOD += $(addprefix $(DISP_MOD_DIR)/, \
 	LCD_Driver.c \
 	Terminal.c \
 	lcd_spi_drv.c \
+	lcd_bg_print.c \
 	moddisplay.c \
 	lcd_fonts.c \
 	font_py.c \

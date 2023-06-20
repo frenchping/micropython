@@ -4,7 +4,6 @@ from machine import SPI
 from display import *
 import random
 
-
 time.sleep_ms(100)
 
 # 定义DC和Rst引脚
@@ -12,7 +11,7 @@ dc = Pin('B9', Pin.OUT, pull=Pin.PULL_UP_47K, value=1)
 rst = Pin('B8', Pin.OUT, pull=Pin.PULL_UP_47K, value=1)
 
 # 建立LCD_Drv的实体，使用SPI 0（对应芯片的LPSPI1，引脚：PCS0=）
-drv = LCD_Drv(SPI_INDEX=0, BAUDRATE=15000000, DC_PIN=dc, RST_PIN=rst, LCD_TYPE=LCD_Drv.LCD200_TYPE)
+drv = LCD_Drv(SPI_INDEX=0, BAUDRATE=30000000, DC_PIN=dc, RST_PIN=rst, LCD_TYPE=LCD_Drv.LCD200_TYPE)
 lcd = LCD(drv)
 lcd.clear(0xF800)
 

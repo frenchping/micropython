@@ -19,6 +19,8 @@
 #include "LCD_Help.h"
 #include "LCD_py.h"
 
+int lcd_dma_chn = -1;
+
 #if MICROPY_PY_FRAMEBUF
 /*
     Definition here are inside modframebuf.c,
@@ -45,7 +47,7 @@ mp_obj_framebuf_t *get_framebuf_obj(mp_obj_t obj_in)
         return MP_OBJ_TO_PTR(obj_in);
     }
     else
-        mp_raise_TypeError(MP_ERROR_TEXT("arg[5] has to be object of FrameBuffer."));
+        mp_raise_TypeError(MP_ERROR_TEXT("last arg has to be object of FrameBuffer."));
 }
 #endif  // MICROPY_PY_FRAMEBUF
 
@@ -126,6 +128,13 @@ STATIC mp_obj_t lcd_obj_make_new(const mp_obj_type_t *type, size_t n_args, size_
     lcd_drv->lcd.Color_Background = 0;        // Black
 
     spi_lcd_screen_init(&lcd_drv->lcd);
+
+#include "dma_manager.h"
+    if (lcd_dma_chn == -1)  // Do not allocate more than one time
+        lcd_dma_chn = allocate_dma_channel();
+    dma_init();
+    spi_lcd_dma_init(&lcd_drv->lcd, lcd_dma_chn);
+
     return MP_OBJ_FROM_PTR(self);
 }
 
@@ -182,15 +191,34 @@ void lcd_str_helper(size_t n_args, const mp_obj_t *args, const Asc_Font_t *fontp
         color = mp_obj_get_int(args[4]);
 
     mp_obj_framebuf_t *framebuf = NULL;
+    if (n_args > 5) {
+        if (mp_const_none == MP_OBJ_TO_PTR(args[5])) {
+            // If the last argv is exist but is None, this means show characters in background.
+            #include "lcd_bg_print.h"
+            bg_print_task_t *task = m_new(bg_print_task_t, 1);
+            task->pos_x = pos_x;
+            task->pos_y = pos_y;
+            task->fg_color = color;
+            task->bg_color = lcd->Color_Background;
+            task->str_buf = strinfo.buf;
+            task->str_len = strinfo.len;
+            task->fontp = fontp;
+            task->lcd = lcd;
+            task->next = NULL;
+            bg_print_sched(task);
+            return;
+        }
 #if MICROPY_PY_FRAMEBUF
-    if (n_args > 5)
-        framebuf = get_framebuf_obj(args[5]);
+        else
+            framebuf = get_framebuf_obj(args[5]);
 #endif  // MICROPY_PY_FRAMEBUF
+    }
 
     if (framebuf == NULL) {
         display_string_t dstr = { pos_x, pos_y, strinfo.buf, strinfo.len, color};
         lcd_str_screen(lcd, &dstr, fontp);
     }
+#if MICROPY_PY_FRAMEBUF    
     else {
         // Draw the character to the given framebuf
         uint8_t *string = (uint8_t*)strinfo.buf;
@@ -219,6 +247,7 @@ void lcd_str_helper(size_t n_args, const mp_obj_t *args, const Asc_Font_t *fontp
             pos_x += fontp->Width;
         }
     }
+#endif  // MICROPY_PY_FRAMEBUF    
 }
 
 // classmethon str16(x, y, str, color=0xFFFF, framebuf )

@@ -308,11 +308,104 @@ void spi_lcd_fill_color(lcd_display_t *lcd, uint16_t color, uint32_t length)
     LPSPI_DATA8b_TCR(spi->TCR);				// Write a new TCR to start a new frame ==> deassert PCS
 }
 
+#include "fsl_lpspi_edma.h"
+#include "fsl_dmamux.h"
+volatile bool isDmaTransferOnGoing;
+
+#define EDMA_BUFFER_SIZE    (512*8)
+AT_NONCACHEABLE_SECTION_ALIGN(uint16_t edma_buf[EDMA_BUFFER_SIZE], 16);
+
+void spi_lcd_dma_callback(edma_handle_t *handle, void *param, bool transferDone, uint32_t tcds)
+{
+    isDmaTransferOnGoing = false;
+
+    LPSPI_Type *spi_base = (LPSPI_Type*)param;
+    while (spi_base->FSR & LPSPI_FSR_TXCOUNT_MASK)
+        __NOP();	// Wait FIFO empty
+
+    LPSPI_EnableDMA(spi_base, false);
+    LPSPI_DATA8b_TCR(spi_base->TCR);            // Write a new TCR to start a new frame ==> deassert PCS
+}
+
+bool spi_lcd_dma_done()
+{
+    return !isDmaTransferOnGoing;
+}
+
+static edma_handle_t           g_EDMA_handle;
+void spi_lcd_dma_init(lcd_display_t *lcd, uint32_t dma_chn)
+{
+    dma_request_source_t    dma_src[] = DMA_REQ_SRC_TX;
+    DMAMUX_Init(DMAMUX);
+    DMAMUX_SetSource(DMAMUX, dma_chn, dma_src[lcd->lpspi_id]);
+    DMAMUX_EnableChannel(DMAMUX, dma_chn);
+
+    edma_transfer_config_t  transferConfig;
+    DMA0->CERR = DMA_CERR_CERR_MASK | DMA_CERR_CAEI_MASK;
+
+    EDMA_CreateHandle(&g_EDMA_handle, DMA0, dma_chn);
+    EDMA_SetCallback(&g_EDMA_handle, spi_lcd_dma_callback, lcd->spi_base);
+    EDMA_PrepareTransfer(&transferConfig, 
+                                (void *)0x12345678, // void *srcAddr,
+                                sizeof(uint16_t),   // uint32_t srcWidth
+                                (void *)(&lcd->spi_base->TDR),   // void *destAddr
+                                sizeof(uint16_t),   // uint32_t destWidth
+                                sizeof(uint16_t),   // uint32_t bytesEachRequest
+                                0xABC * sizeof(uint16_t),   // uint32_t transferBytes
+                                kEDMA_MemoryToPeripheral);
+
+    EDMA_SubmitTransfer(&g_EDMA_handle, &transferConfig);
+    EDMA_SetModulo(DMA0, dma_chn, kEDMA_ModuloDisable, kEDMA_ModuloDisable);
+}
+
+void spi_lcd_dma_fill(lcd_display_t *lcd, uint16_t *buffer, uint32_t length, uint32_t dma_chn)
+{
+#if 0   // This part is moved to spi_lcd_dma_init() to save time for initialization in everytime.
+    dma_request_source_t    dma_src[] = DMA_REQ_SRC_TX;
+    edma_transfer_config_t  transferConfig;
+    edma_config_t           edma_config;
+    DMAMUX_Init(DMAMUX);
+
+    DMAMUX_SetSource(DMAMUX, dma_chn, dma_src[lcd->lpspi_id]);
+    DMAMUX_EnableChannel(DMAMUX, dma_chn);
+
+    EDMA_GetDefaultConfig(&edma_config);
+    EDMA_Deinit(DMA0);
+    EDMA_Init(DMA0, &edma_config);
+    DMA0->CERR = DMA_CERR_CERR_MASK | DMA_CERR_CAEI_MASK;
+
+    EDMA_CreateHandle(&g_EDMA_handle, DMA0, dma_chn);
+
+    EDMA_SetCallback(&g_EDMA_handle, spi_lcd_dma_callback, lcd->spi_base);
+    EDMA_PrepareTransfer(&transferConfig, 
+                                (void *)buffer,     // void *srcAddr,
+                                sizeof(uint16_t),   // uint32_t srcWidth
+                                (void *)(&lcd->spi_base->TDR),   // void *destAddr
+                                sizeof(uint16_t),   // uint32_t destWidth
+                                sizeof(uint16_t),   // uint32_t bytesEachRequest
+                                length * sizeof(uint16_t),  // uint32_t transferBytes
+                                kEDMA_MemoryToPeripheral);
+
+    EDMA_SubmitTransfer(&g_EDMA_handle, &transferConfig);
+    EDMA_SetModulo(DMA0, dma_chn, kEDMA_ModuloDisable, kEDMA_ModuloDisable);
+#else
+    edma_tcd_t *tcd = (edma_tcd_t *)&g_EDMA_handle.base->TCD[g_EDMA_handle.channel];
+    tcd->SADDR = (uint32_t)buffer;
+    tcd->CITER = length;
+    tcd->BITER = length;
+#endif
+    lcd->spi_base->TCR = LPSPI_16Bit_TCR(lcd->spi_base->TCR) | LPSPI_TCR_CONT_MASK;    
+    LPSPI_EnableDMA(lcd->spi_base, true);
+    EDMA_StartTransfer(&g_EDMA_handle);
+
+    isDmaTransferOnGoing = true;
+    NVIC_SetPriority(DMA0_DMA16_IRQn, 1);            // 设置DMA中断优先级 范围0-15 越小优先级越高
+}
+
 void spi_lcd_fill_area(lcd_display_t *lcd, uint16_t *buf, uint32_t length)
 {
     LPSPI_Type *spi = lcd->spi_base;
     LPSPI_Wait_Idle(spi);
-
     spi->TCR = LPSPI_16Bit_TCR(spi->TCR) | LPSPI_TCR_CONT_MASK;
     for (; length; length--) {
         LPSPI_Write_Data(spi, *buf++);
