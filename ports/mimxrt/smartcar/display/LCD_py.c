@@ -18,6 +18,7 @@
 
 #include "LCD_Help.h"
 #include "LCD_py.h"
+#include "lcd_bg_print.h"
 
 int lcd_dma_chn = -1;
 
@@ -194,7 +195,6 @@ void lcd_str_helper(size_t n_args, const mp_obj_t *args, const Asc_Font_t *fontp
     if (n_args > 5) {
         if (mp_const_none == MP_OBJ_TO_PTR(args[5])) {
             // If the last argv is exist but is None, this means show characters in background.
-            #include "lcd_bg_print.h"
             bg_print_task_t *task = m_new(bg_print_task_t, 1);
             task->pos_x = pos_x;
             task->pos_y = pos_y;
@@ -372,6 +372,18 @@ STATIC mp_obj_t lcd_blit(size_t n_args, const mp_obj_t *args)
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(lcd_blit_obj, 6, 6, lcd_blit);
 
+// Output one character in background mode. Otherwise, no effect.
+// Return True if these was something output.
+// If 'waitDma' is True, do not return until the output is done.
+STATIC mp_obj_t lcd_outc(size_t n_args, const mp_obj_t *args)
+{  
+    bool waitDma = false;
+    if (n_args > 1)
+        waitDma = mp_obj_is_true(args[1]);
+    return mp_obj_new_bool(bg_print(waitDma));
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(lcd_outc_obj, 1, 2, lcd_outc);
+
 STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_help),    MP_ROM_PTR(&lcd_help_obj) },
 
@@ -389,6 +401,7 @@ STATIC const mp_rom_map_elem_t lcd_locals_dict_table[] = {
     // { MP_ROM_QSTR(MP_QSTR_load_bmp),MP_ROM_PTR(&lcd_load_bmp_obj) },
     { MP_ROM_QSTR(MP_QSTR_blit),    MP_ROM_PTR(&lcd_blit_obj) },
 
+    { MP_ROM_QSTR(MP_QSTR_outchar), MP_ROM_PTR(&lcd_outc_obj) },
     // { MP_ROM_QSTR(MP_QSTR_font),     MP_ROM_PTR(&lcd_font_obj) },
     // { MP_ROM_QSTR(MP_QSTR_cursor),   MP_ROM_PTR(&lcd_cursor_obj) },
 };

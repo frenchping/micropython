@@ -1,6 +1,17 @@
 #define MICROPY_HW_BOARD_NAME "i.MX RT1020 Core100"
 #define MICROPY_HW_MCU_NAME   "MIMXRT1021DAF5A"
 
+#ifndef  MICROPY_EVENT_POLL_HOOK
+#define MICROPY_EVENT_POLL_HOOK \
+    do { \
+        extern void mp_handle_pending(bool); \
+        mp_handle_pending(true); \
+        extern bool bg_print(bool waitDma); \
+        bg_print(false); \
+        __WFE(); \
+    } while (0);
+#endif
+
 // i.MX RT1020 Core100 has 1 board LED
 // Todo: think about replacing the define with searching in the generated pins?
 #define MICROPY_HW_LED1_PIN (pin_GPIO_AD_B1_14)

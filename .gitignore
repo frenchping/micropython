@@ -35,6 +35,8 @@ ZephyrRTOS_TAD_logs/
 .mcuxpressoide_packages_support/
 Smartcar-144pin/
 evkmimxrt1020_hello_world/
+evkmimxrt1020_lpspi_edma_b2b_transfer_master/
+evkmimxrt1020_lpspi_edma_b2b_transfer_slave/
 ports/mimxrt/.settings/language.settings.xml
 ports/mimxrt/.settings/org.eclipse.cdt.core.prefs
 ports/mimxrt/Smartcar-RT1021 LinkServer Build (GNU).launch

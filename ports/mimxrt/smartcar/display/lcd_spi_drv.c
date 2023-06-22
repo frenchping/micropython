@@ -317,14 +317,14 @@ AT_NONCACHEABLE_SECTION_ALIGN(uint16_t edma_buf[EDMA_BUFFER_SIZE], 16);
 
 void spi_lcd_dma_callback(edma_handle_t *handle, void *param, bool transferDone, uint32_t tcds)
 {
-    isDmaTransferOnGoing = false;
-
     LPSPI_Type *spi_base = (LPSPI_Type*)param;
     while (spi_base->FSR & LPSPI_FSR_TXCOUNT_MASK)
         __NOP();	// Wait FIFO empty
 
     LPSPI_EnableDMA(spi_base, false);
     LPSPI_DATA8b_TCR(spi_base->TCR);            // Write a new TCR to start a new frame ==> deassert PCS
+
+    isDmaTransferOnGoing = false;
 }
 
 bool spi_lcd_dma_done()
@@ -415,7 +415,6 @@ void spi_lcd_fill_area(lcd_display_t *lcd, uint16_t *buf, uint32_t length)
     LPSPI_DATA8b_TCR(spi->TCR);				// Write a new TCR to start a new frame ==> deassert PCS
 }
 
-
 void spi_lcd_reset(lcd_display_t *lcd)
 {
     mp_hal_pin_low(lcd->rst_pin);
@@ -439,9 +438,7 @@ void spi_lcd_screen_init(lcd_display_t *lcd)
         lcd_drivers[lcd->lcd_type].lcd_init(lcd);
     }
     spi_lcd_set_mode(lcd, DEFAULT_ORIENTATION);
-
 }
-
 
 void spi_lcd_draw_line (lcd_display_t *lcd, Rect_t *rect, uint16_t color, uint16_t thick)
 {

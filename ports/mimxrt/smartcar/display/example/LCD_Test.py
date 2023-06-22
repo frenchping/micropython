@@ -83,3 +83,18 @@ for cc in "Hello World! ":
     xbuf.blit(chbuf, x, y, 0, plt)
     x += 12
 lcd.blit(10, 0, WIDTH, HEIGHT, xbuf)
+
+## 测试逐字print的功能，如果循环里没有sleep_ms，则终止循环前看不到显示
+import time
+x = 1
+lcd.clear()
+lcd.str24(0,20,"Hello World. Hello World.", 0x1f , None)
+lcd.str24(0,50,"Hello World. Hello World.", 0x3ff , None)
+lcd.str24(0,80,"Hello World. Hello World.", 0x1fff , None)
+
+
+for x in range(3):
+    t = lcd.outchar(True)
+
+while True:
+    x = x + 1

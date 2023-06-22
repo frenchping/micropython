@@ -74,15 +74,12 @@ bool bg_print_slice(bg_print_task_t *task)
     return ret;
 }
 
-STATIC mp_obj_t bg_print(mp_obj_t obj_in);
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(bg_print_callback, bg_print);
-
-STATIC mp_obj_t bg_print(mp_obj_t obj_in)
+// Return false if nothing to output.
+bool bg_print(bool waitDma)
 {
-	if (MP_STATE_VM(bg_task_head) == NULL)
-        return mp_const_none;
-
     bg_print_task_t *task = MP_STATE_VM(bg_task_head);
+	if (task == NULL)
+        return false;
 
     if (bg_print_slice(task)) {
         MP_STATE_VM(bg_task_head) = task->next;
@@ -90,18 +87,16 @@ STATIC mp_obj_t bg_print(mp_obj_t obj_in)
             MP_STATE_VM(bg_task_tail) = NULL;
     }
 
-    if (MP_STATE_VM(bg_task_head)) {
-        mp_sched_schedule(MP_OBJ_FROM_PTR(&bg_print_callback), mp_const_none);
-    }
-
-    return mp_const_none;
+    if (waitDma)
+        while (!spi_lcd_dma_done())
+            __NOP();
+    return true;
 }
 
 void bg_print_sched(bg_print_task_t *task)
 {
     if (MP_STATE_VM(bg_task_tail) == NULL) {
         MP_STATE_VM(bg_task_head) = task;
-        mp_sched_schedule(MP_OBJ_FROM_PTR(&bg_print_callback), mp_const_none);
     } else {
         ((bg_print_task_t*)MP_STATE_VM(bg_task_tail))->next = task;
     }

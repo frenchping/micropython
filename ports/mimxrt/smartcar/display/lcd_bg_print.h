@@ -24,5 +24,6 @@ typedef struct _bg_print_task {
 } bg_print_task_t;
 
 extern void bg_print_sched(bg_print_task_t *task);
+extern bool bg_print(bool waitDma);
 
 #endif  // _INCLUDE_LCD_BG_PRING_H_
