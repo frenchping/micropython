@@ -61,6 +61,9 @@ typedef enum _lcd_help_id {
     "           Output the 'text' to location (x, y) with optional color.\n" \
     "           Default color is defined by LCD.color().\n" \
     "           If parameter 'framebuf' is given, the text outputs to framebuf object.\n"\
+    "           If 'framebuf' is given as None, this means asynchronous mode that string\n"
+    "           output will be done when the engine is in idle and output one character in\n" \
+    "           each time.\n" \
     "           Four font sizes are defined:\n" \
     "                   6x12(str12), 8x16(str16), 12x24(str24) & 16x32(str32).\n" \
     "   2. LCD.clear(color)\n"\
@@ -79,6 +82,11 @@ typedef enum _lcd_help_id {
     "           The 'buffer' provide a rectangle bitmap data and w & h provide the width\n" \
     "           and height of the rectangle.\n" \
     "           Note: 'buffer' can be a framebuf object.\n" \
+    "   7. LCD.outchar([wait])\n" \
+    "           In asynchronous mode, output one character.\n" \
+    "           If 'wait' is True, the function will not return until the character is sent.\n" \
+    "           This function returns True if one character is sent. Returns False if sending\n" \
+    "           is on going\n" \
     " Refer to the provided example for the usage.\n"
 
 #define LCD_TBD_HELP_TEXT "Help text is not available yet.\n"
