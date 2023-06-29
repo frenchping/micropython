@@ -5,5 +5,6 @@ SRC_USERMOD += $(addprefix $(SCAR_MOD_DIR)/, \
 	Camera_py.c \
 	mod_scar.c \
 	Encoder_py.c \
+	Ticker_py.c \
 )
 CFLAGS_USERMOD += -I$(SCAR_MOD_DIR) -DENABLE_CAMERA_MT9V032 -I$(SCAR_MOD_DIR)/../include

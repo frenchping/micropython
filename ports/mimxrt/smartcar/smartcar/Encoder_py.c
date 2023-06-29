@@ -15,7 +15,7 @@
 
 #include "sensor_def.h"
 
-extern const mp_obj_type_t smartcar_encoder_type;
+extern const mp_obj_type_t encoder_type;
 typedef struct _smartcar_encoder_obj_t {
     mp_obj_base_t base;
     const machine_pin_obj_t *phaseA;
@@ -104,7 +104,7 @@ STATIC mp_obj_t encoder_make_new(const mp_obj_type_t *type, size_t n_args, size_
 
     smartcar_encoder_obj_t *self = m_new_obj(smartcar_encoder_obj_t);
     memset(self, 0, sizeof(smartcar_encoder_obj_t));
-    self->base.type = &smartcar_encoder_type;
+    self->base.type = &encoder_type;
 
     // Config both pins.
     IOMUXC_SetPinMux(pinA->muxRegister,     pinA_af->af_mode, pinA_af->input_register, pinA_af->input_daisy, pinA->configRegister, 1U);
@@ -203,7 +203,7 @@ STATIC const sensor_protocol_t encoder_p = {
 };
 
 MP_DEFINE_CONST_OBJ_TYPE(
-    smartcar_encoder_type,
+    encoder_type,
     MP_QSTR_encoder,
     MP_TYPE_FLAG_NONE,
     make_new, encoder_make_new,

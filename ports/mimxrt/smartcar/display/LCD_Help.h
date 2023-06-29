@@ -61,7 +61,7 @@ typedef enum _lcd_help_id {
     "           Output the 'text' to location (x, y) with optional color.\n" \
     "           Default color is defined by LCD.color().\n" \
     "           If parameter 'framebuf' is given, the text outputs to framebuf object.\n"\
-    "           If 'framebuf' is given as None, this means asynchronous mode that string\n"
+    "           If 'framebuf' is given as None, this means asynchronous mode that string\n" \
     "           output will be done when the engine is in idle and output one character in\n" \
     "           each time.\n" \
     "           Four font sizes are defined:\n" \
